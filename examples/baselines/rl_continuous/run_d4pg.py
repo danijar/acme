@@ -14,20 +14,24 @@
 
 """Example running D4PG on continuous control tasks."""
 
+import sys
+import pathlib
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent.parent))
+
 from absl import flags
 from acme.agents.jax import d4pg
 import helpers
 from absl import app
 from acme.jax import experiments
 from acme.utils import lp_utils
-import launchpad as lp
 
 FLAGS = flags.FLAGS
 
 flags.DEFINE_bool(
-    'run_distributed', True, 'Should an agent be executed in a distributed '
+    'run_distributed', False, 'Should an agent be executed in a distributed '
     'way. If False, will run single-threaded.')
-flags.DEFINE_string('env_name', 'gym:HalfCheetah-v2', 'What environment to run')
+# flags.DEFINE_string('env_name', 'gym:HalfCheetah-v2', 'What environment to run')
+flags.DEFINE_string('env_name', 'control:walker:walk', 'What environment to run')
 flags.DEFINE_integer('seed', 0, 'Random seed.')
 flags.DEFINE_integer('num_steps', 1_000_000, 'Number of env steps to run.')
 flags.DEFINE_integer('eval_every', 50_000, 'How often to run evaluation.')
@@ -73,6 +77,7 @@ def main(_):
   if FLAGS.run_distributed:
     program = experiments.make_distributed_experiment(
         experiment=config, num_actors=4)
+    import launchpad as lp
     lp.launch(program, xm_resources=lp_utils.make_xm_docker_resources(program))
   else:
     experiments.run_experiment(

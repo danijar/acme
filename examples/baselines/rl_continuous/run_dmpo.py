@@ -14,6 +14,10 @@
 
 """Example running Distributional MPO on continuous control tasks."""
 
+import sys
+import pathlib
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent.parent))
+
 from absl import flags
 from acme import specs
 from acme.agents.jax import mpo
@@ -22,13 +26,12 @@ import helpers
 from absl import app
 from acme.jax import experiments
 from acme.utils import lp_utils
-import launchpad as lp
 
 RUN_DISTRIBUTED = flags.DEFINE_bool(
-    'run_distributed', True, 'Should an agent be executed in a distributed '
+    'run_distributed', False, 'Should an agent be executed in a distributed '
     'way. If False, will run single-threaded.')
 ENV_NAME = flags.DEFINE_string(
-    'env_name', 'gym:HalfCheetah-v2',
+    'env_name', 'control:walker:walk',
     'What environment to run on, in the format {gym|control}:{task}, '
     'where "control" refers to the DM control suite. DM Control tasks are '
     'further split into {domain_name}:{task_name}.')
@@ -87,6 +90,7 @@ def main(_):
   if RUN_DISTRIBUTED.value:
     program = experiments.make_distributed_experiment(
         experiment=config, num_actors=4)
+    import launchpad as lp
     lp.launch(program, xm_resources=lp_utils.make_xm_docker_resources(program))
   else:
     experiments.run_experiment(

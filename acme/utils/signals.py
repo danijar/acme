@@ -19,13 +19,13 @@ import ctypes
 import threading
 from typing import Any, Callable, Optional
 
-import launchpad
 
 _Handler = Callable[[], Any]
 
 
 @contextlib.contextmanager
 def runtime_terminator(callback: Optional[_Handler] = None):
+  import launchpad
   """Runtime terminator used for stopping computation upon agent termination.
 
     Runtime terminator optionally executed a provided `callback` and then raises

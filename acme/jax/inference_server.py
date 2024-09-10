@@ -21,7 +21,6 @@ from typing import Any, Callable, Generic, Optional, Sequence, TypeVar
 import acme
 from acme.jax import variable_utils
 import jax
-import launchpad as lp
 
 
 @dataclasses.dataclass
@@ -140,6 +139,7 @@ class InferenceServer(Generic[InferenceServerHandler]):
                      **kwargs_with_dereferenced_params)
 
     max_parallelism = 2 * max(len(self._devices), self._config.batch_size)
+    import launchpad as lp
     return lp.batched_handler(
         batch_size=self._config.batch_size,
         timeout=self._config.timeout,

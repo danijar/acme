@@ -14,20 +14,23 @@
 
 """Example running PPO on continuous control tasks."""
 
+import sys
+import pathlib
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent.parent))
+
 from absl import flags
 from acme.agents.jax import ppo
 import helpers
 from absl import app
 from acme.jax import experiments
 from acme.utils import lp_utils
-import launchpad as lp
 
 FLAGS = flags.FLAGS
 
 flags.DEFINE_bool(
-    'run_distributed', True, 'Should an agent be executed in a distributed '
+    'run_distributed', False, 'Should an agent be executed in a distributed '
     'way. If False, will run single-threaded.')
-flags.DEFINE_string('env_name', 'gym:HalfCheetah-v2', 'What environment to run')
+flags.DEFINE_string('env_name', 'control:walker:walk', 'What environment to run')
 flags.DEFINE_integer('seed', 0, 'Random seed.')
 flags.DEFINE_integer('num_steps', 1_000_000, 'Number of env steps to run.')
 flags.DEFINE_integer('eval_every', 50_000, 'How often to run evaluation.')
@@ -42,9 +45,17 @@ def build_experiment_config():
   suite, task = FLAGS.env_name.split(':', 1)
 
   config = ppo.PPOConfig(
+      unroll_length=256,
+      num_minibatches=8,
+      num_epochs=3,
+      batch_size=64,
       normalize_advantage=True,
-      normalize_value=True,
-      obs_normalization_fns_factory=ppo.build_mean_std_normalizer)
+      max_abs_reward=10.0,
+      entropy_cost=0.01,
+      discount=0.997,
+      adam_epsilon=1e-5,
+      obs_normalization_fns_factory=ppo.build_mean_std_normalizer,
+  )
   ppo_builder = ppo.PPOBuilder(config)
 
   layer_sizes = (256, 256, 256)
@@ -61,6 +72,7 @@ def main(_):
   if FLAGS.run_distributed:
     program = experiments.make_distributed_experiment(
         experiment=config, num_actors=FLAGS.num_distributed_actors)
+    import launchpad as lp
     lp.launch(program, xm_resources=lp_utils.make_xm_docker_resources(program))
   else:
     experiments.run_experiment(
