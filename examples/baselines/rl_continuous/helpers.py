@@ -22,7 +22,7 @@ import gym
 _VALID_TASK_SUITES = ('gym', 'control')
 
 
-def make_environment(suite: str, task: str) -> dm_env.Environment:
+def make_environment(suite, task, logdir) -> dm_env.Environment:
   """Makes the requested continuous control environment.
 
   Args:
@@ -54,4 +54,64 @@ def make_environment(suite: str, task: str) -> dm_env.Environment:
   # Note: this is a no-op on 'control' tasks.
   env = wrappers.CanonicalSpecWrapper(env, clip=True)
   env = wrappers.SinglePrecisionWrapper(env)
+
+  env = LoggingWrapper(env, logdir)
+
   return env
+
+
+import json
+import os
+import time
+
+import elements
+
+
+class LoggingWrapper:
+
+  once = True
+
+  def __init__(self, env, logdir):
+    assert type(self).once
+    type(self).once = False
+    self.env = env
+    logdir = elements.Path(logdir)
+    logdir.mkdir()
+    self.filename = logdir / 'scores.jsonl'
+    self.score = 0.0
+    self.total = 0
+    self.start = time.time()
+
+  @property
+  def unwrapped(self):
+    return self.env
+
+  def __getattr__(self, name):
+    return getattr(self.env, name)
+
+  def reset(self):
+    self.score = 0.0
+    self.total += 1
+    return self.env.reset()
+
+  def step(self, action):
+    self.total += 1
+
+    ts = self.env.step(action)
+
+    self.score += float(ts.reward)  # TODO
+    if ts.last():
+      mins = round((time.time() - self.start) / 60, 1)
+      print('episode done!', self.total, mins, self.score, flush=True)
+      with self.filename.open('a') as f:
+        f.write(json.dumps({'xs': self.total, 'ys': self.score}) + '\n')
+      # self.output([(self.total, 'episode/score', self.score)])
+      self.score = 0.0
+
+    if self.total >= 1.1e6:
+      print('-' * 79)
+      print('REACHED ENOUGH STEPS; STOPPING!')
+      print('-' * 79)
+      os._exit(0)
+
+    return ts

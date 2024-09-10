@@ -36,6 +36,7 @@ ENV_NAME = flags.DEFINE_string(
     'where "control" refers to the DM control suite. DM Control tasks are '
     'further split into {domain_name}:{task_name}.')
 SEED = flags.DEFINE_integer('seed', 0, 'Random seed.')
+LOGDIR = flags.DEFINE_string('logdir', '', '')
 NUM_STEPS = flags.DEFINE_integer(
     'num_steps', 1_000_000,
     'Number of environment steps to run the experiment for.')
@@ -49,6 +50,7 @@ EVAL_EPISODES = flags.DEFINE_integer(
 
 def build_experiment_config():
   """Builds MPO experiment config which can be executed in different ways."""
+  assert LOGDIR.value
   suite, task = ENV_NAME.value.split(':', 1)
   critic_type = mpo.CriticType.CATEGORICAL
 
@@ -79,7 +81,8 @@ def build_experiment_config():
 
   return experiments.ExperimentConfig(
       builder=agent_builder,
-      environment_factory=lambda _: helpers.make_environment(suite, task),
+      environment_factory=lambda _: helpers.make_environment(
+          suite, task, LOGDIR.value),
       network_factory=network_factory,
       seed=SEED.value,
       max_num_actor_steps=NUM_STEPS.value)

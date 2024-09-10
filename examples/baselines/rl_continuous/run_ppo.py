@@ -32,6 +32,7 @@ flags.DEFINE_bool(
     'way. If False, will run single-threaded.')
 flags.DEFINE_string('env_name', 'control:walker:walk', 'What environment to run')
 flags.DEFINE_integer('seed', 0, 'Random seed.')
+flags.DEFINE_string('logdir', '', '')
 flags.DEFINE_integer('num_steps', 1_000_000, 'Number of env steps to run.')
 flags.DEFINE_integer('eval_every', 50_000, 'How often to run evaluation.')
 flags.DEFINE_integer('evaluation_episodes', 10, 'Evaluation episodes.')
@@ -43,6 +44,7 @@ def build_experiment_config():
   """Builds PPO experiment config which can be executed in different ways."""
   # Create an environment, grab the spec, and use it to create networks.
   suite, task = FLAGS.env_name.split(':', 1)
+  assert FLAGS.logdir
 
   config = ppo.PPOConfig(
       unroll_length=256,
@@ -61,7 +63,8 @@ def build_experiment_config():
   layer_sizes = (256, 256, 256)
   return experiments.ExperimentConfig(
       builder=ppo_builder,
-      environment_factory=lambda seed: helpers.make_environment(suite, task),
+      environment_factory=lambda seed: helpers.make_environment(
+          suite, task, logdir=FLAGS.logdir),
       network_factory=lambda spec: ppo.make_networks(spec, layer_sizes),
       seed=FLAGS.seed,
       max_num_actor_steps=FLAGS.num_steps)

@@ -33,6 +33,7 @@ flags.DEFINE_bool(
 # flags.DEFINE_string('env_name', 'gym:HalfCheetah-v2', 'What environment to run')
 flags.DEFINE_string('env_name', 'control:walker:walk', 'What environment to run')
 flags.DEFINE_integer('seed', 0, 'Random seed.')
+flags.DEFINE_string('logdir', '', '')
 flags.DEFINE_integer('num_steps', 1_000_000, 'Number of env steps to run.')
 flags.DEFINE_integer('eval_every', 50_000, 'How often to run evaluation.')
 flags.DEFINE_integer('evaluation_episodes', 10, 'Evaluation episodes.')
@@ -40,6 +41,7 @@ flags.DEFINE_integer('evaluation_episodes', 10, 'Evaluation episodes.')
 
 def build_experiment_config():
   """Builds D4PG experiment config which can be executed in different ways."""
+  assert FLAGS.logdir
 
   # Create an environment, grab the spec, and use it to create networks.
   suite, task = FLAGS.env_name.split(':', 1)
@@ -66,7 +68,8 @@ def build_experiment_config():
 
   return experiments.ExperimentConfig(
       builder=d4pg.D4PGBuilder(d4pg_config),
-      environment_factory=lambda seed: helpers.make_environment(suite, task),
+      environment_factory=lambda seed: helpers.make_environment(
+          suite, task, FLAGS.logdir),
       network_factory=network_factory,
       seed=FLAGS.seed,
       max_num_actor_steps=FLAGS.num_steps)
