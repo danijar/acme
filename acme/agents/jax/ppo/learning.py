@@ -485,6 +485,10 @@ class PPOLearner(acme.Learner):
     self._state, results = self._full_update_step(self._state, sample)
     self._cached_state = get_from_first_device(self._state, as_numpy=True)
 
+    print('-' * 79)
+    print('GRAD STEP')
+    print('-' * 79)
+
     # Update our counts and record it.
     counts = self._counter.increment(steps=self.num_epochs *
                                      self.num_minibatches)

@@ -37,8 +37,9 @@ ENV_NAME = flags.DEFINE_string(
     'further split into {domain_name}:{task_name}.')
 SEED = flags.DEFINE_integer('seed', 0, 'Random seed.')
 LOGDIR = flags.DEFINE_string('logdir', '', '')
+METHOD = flags.DEFINE_string('method', '', '')
 NUM_STEPS = flags.DEFINE_integer(
-    'num_steps', 1_000_000,
+    'num_steps', 1_100_000,
     'Number of environment steps to run the experiment for.')
 EVAL_EVERY = flags.DEFINE_integer(
     'eval_every', 50_000,

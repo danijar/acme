@@ -108,7 +108,7 @@ class LoggingWrapper:
       # self.output([(self.total, 'episode/score', self.score)])
       self.score = 0.0
 
-    if self.total >= 1.1e6:
+    if self.total >= 1.15e6:
       print('-' * 79)
       print('REACHED ENOUGH STEPS; STOPPING!')
       print('-' * 79)

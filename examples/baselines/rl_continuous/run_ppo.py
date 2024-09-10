@@ -33,7 +33,8 @@ flags.DEFINE_bool(
 flags.DEFINE_string('env_name', 'control:walker:walk', 'What environment to run')
 flags.DEFINE_integer('seed', 0, 'Random seed.')
 flags.DEFINE_string('logdir', '', '')
-flags.DEFINE_integer('num_steps', 1_000_000, 'Number of env steps to run.')
+flags.DEFINE_string('method', '', '')
+flags.DEFINE_integer('num_steps', 1_100_000, 'Number of env steps to run.')
 flags.DEFINE_integer('eval_every', 50_000, 'How often to run evaluation.')
 flags.DEFINE_integer('evaluation_episodes', 10, 'Evaluation episodes.')
 flags.DEFINE_integer('num_distributed_actors', 64,

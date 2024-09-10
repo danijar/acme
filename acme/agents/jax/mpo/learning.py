@@ -686,6 +686,11 @@ class MPOLearner(acme.Learner):
     return new_state, metrics
 
   def step(self):
+
+    print('-' * 79)
+    print('GRAD STEP')
+    print('-' * 79)
+
     """Perform one learner step, which in general does multiple SGD steps."""
     with jax.profiler.StepTraceAnnotation('step', step_num=self._current_step):
       # Get data from replay (dropping extras if any). Note there is no

@@ -112,17 +112,18 @@ def run_experiment(experiment: config.ExperimentConfig,
                                            train_counter.get_steps_key(), 0)
 
   checkpointer = None
-  if experiment.checkpointing is not None:
-    checkpointing = experiment.checkpointing
-    checkpointer = savers.Checkpointer(
-        objects_to_save={'learner': learner, 'counter': parent_counter},
-        time_delta_minutes=checkpointing.time_delta_minutes,
-        directory=checkpointing.directory,
-        add_uid=checkpointing.add_uid,
-        max_to_keep=checkpointing.max_to_keep,
-        keep_checkpoint_every_n_hours=checkpointing.keep_checkpoint_every_n_hours,
-        checkpoint_ttl_seconds=checkpointing.checkpoint_ttl_seconds,
-    )
+
+  # if experiment.checkpointing is not None:
+  #   checkpointing = experiment.checkpointing
+  #   checkpointer = savers.Checkpointer(
+  #       objects_to_save={'learner': learner, 'counter': parent_counter},
+  #       time_delta_minutes=checkpointing.time_delta_minutes,
+  #       directory=checkpointing.directory,
+  #       add_uid=checkpointing.add_uid,
+  #       max_to_keep=checkpointing.max_to_keep,
+  #       keep_checkpoint_every_n_hours=checkpointing.keep_checkpoint_every_n_hours,
+  #       checkpoint_ttl_seconds=checkpointing.checkpoint_ttl_seconds,
+  #   )
 
   # Replace the actor with a LearningActor. This makes sure that every time
   # that `update` is called on the actor it checks to see whether there is
@@ -143,10 +144,10 @@ def run_experiment(experiment: config.ExperimentConfig,
       experiment.max_num_actor_steps -
       parent_counter.get_counts().get(train_counter.get_steps_key(), 0))
 
-  if num_eval_episodes == 0:
-    # No evaluation. Just run the training loop.
-    train_loop.run(num_steps=max_num_actor_steps)
-    return
+  # if num_eval_episodes == 0:
+  # No evaluation. Just run the training loop.
+  train_loop.run(num_steps=max_num_actor_steps)
+  return
 
   # Create the evaluation actor and loop.
   eval_counter = counting.Counter(
