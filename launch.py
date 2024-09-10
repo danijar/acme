@@ -2,25 +2,29 @@ import pathlib
 
 from launcher import Runs, launch
 
-repo = pathlib.Path(__file__).parent
-gcsdir = 'gs://dm-gdm-worldmodel-team-us-ut-da6189d76684/logdir'
-jobs = {
-    'agent': {
-        'executable': {
-            'buildroot': f'{repo}',
-            'dockerfile': f'{repo}/Dockerfile',
-            'entrypoint': 'python3 examples/baselines/rl_continuous/run_d4pg.py',
-        },
-        'requirements': {
-            'location': 'us-central1',
-            'priority': 200,
-            'chips': 'a100=1',
-        },
-        'flags': {
-            'logdir': f'{gcsdir}/{{experiment}}/{{task}}/{{method}}/{{seed}}',
-        },
-    },
-}
+def jobs(agent='d4pg'):
+  repo = pathlib.Path(__file__).parent
+  gcsdir = 'gs://dm-gdm-worldmodel-team-us-ut-da6189d76684/logdir'
+  rundir = '{random}-{task}-{method}-{seed}'
+  jobs = {
+      'agent': {
+          'executable': {
+              'buildroot': f'{repo}',
+              'dockerfile': f'{repo}/Dockerfile',
+              'entrypoint': (
+                  'python3 examples/baselines/rl_continuous/run_{agent}.py'),
+          },
+          'requirements': {
+              'location': 'us-central1',
+              'priority': 200,
+              'chips': 'a100=1',
+          },
+          'flags': {
+              'logdir': f'{gcsdir}/{{experiment}}/{rundir}',
+          },
+      },
+  }
+  return jobs
 
 DMC20 = [
     'dmc_cartpole_swingup', 'dmc_cartpole_balance_sparse', 'dmc_cup_catch',
@@ -42,7 +46,17 @@ DMC18 = [
 ]
 assert all(x in DMC20 for x in DMC18)
 
-runs = Runs({'jobs': jobs})
-runs.state = {'obs': 'state'}
-runs.times(task=DMC18, seed=range(3))
-launch(runs, 'd4pg', alloc='dm/gdm-worldmodels-gcp', tbdir='')
+DMC20 = [
+    ('control:' + x[4:].replace('_', ':', 1)).replace(':cup:', ':ball_in_cup:')
+    for x in DMC20]
+
+# print('\n'.join(DMC20))
+# import sys; sys.exit()
+
+runs = Runs()
+runs.d4pg = {'jobs': jobs('d4pg')}
+runs.dmpo = {'jobs': jobs('dmpo')}
+runs.ppo = {'jobs': jobs('ppo')}
+runs.times(task=DMC20, seed=range(3))
+launch(runs, 'acme', alloc='dm/gdm-worldmodels-gcp', tbdir='')
+
